@@ -44,7 +44,7 @@ Face-recognition attendance, restricted-zone alerts, fall detection, unauthorise
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/media/screenshots/01-dashboard.jpg" alt="Smart Office dashboard"><br><sub><b>Dashboard</b> — today's attendance, camera thumbnails, NPU and CPU load (the attendance tables are blurred)</sub></td>
+    <td width="50%"><img src="docs/media/screenshots/01-dashboard.jpg" alt="Smart Office dashboard"><br><sub><b>Dashboard</b> — today's attendance, camera thumbnails, NPU and CPU load</sub></td>
     <td width="50%"><img src="docs/media/screenshots/02-live-wall.jpg" alt="Live wall with detections"><br><sub><b>Live wall</b> — people, faces and zones drawn on every camera</sub></td>
   </tr>
   <tr>
