@@ -1,0 +1,274 @@
+/* Smart Office — light industrial UI.
+ *
+ * The reference points are control-room and plant-floor software rather than
+ * consumer dashboards: a cool low-glare ground, crisp hairline borders instead
+ * of shadows, dense tables, and one accent colour used sparingly so that when
+ * something IS coloured it means something.
+ *
+ * Two decisions that matter more than they look:
+ *   - tabular numerals everywhere a number appears, so a timesheet's columns
+ *     line up digit under digit and a scan down the page is actually readable
+ *   - status colour is carried by a tinted chip with dark text, never by text
+ *     colour alone, so it survives being printed or read by someone colourblind
+ */
+
+:root {
+  --bg:          #eef1f5;   /* page — cool grey, easier than white under strip lights */
+  --surface:     #ffffff;
+  --surface-2:   #f7f9fb;   /* table heads, inset areas */
+  --line:        #d5dbe3;
+  --line-soft:   #e6eaf0;
+
+  --text:        #16202c;
+  --text-2:      #5a6878;
+  --text-3:      #8592a3;
+
+  --accent:      #0b5394;
+  --accent-ink:  #ffffff;
+  --accent-soft: #e7f0fa;
+
+  --ok:          #16794a;  --ok-soft:   #e3f3ea;
+  --warn:        #9a5b00;  --warn-soft: #fdf0dd;
+  --crit:        #b3261e;  --crit-soft: #fce9e7;
+  --info:        #0b5394;  --info-soft: #e7f0fa;
+
+  --r:           5px;      /* rectilinear; industrial software is not rounded */
+  --r-sm:        3px;
+  --side-w:      232px;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; }
+
+h1 { font-size: 19px; font-weight: 650; margin: 0 0 3px; letter-spacing: -.01em; }
+h2 { font-size: 12px; font-weight: 700; margin: 0 0 12px; text-transform: uppercase;
+     letter-spacing: .07em; color: var(--text-2); }
+p { margin: 0 0 10px; }
+.muted { color: var(--text-2); }
+
+/* ── shell ──────────────────────────────────────────────────────────────── */
+.shell { display: flex; min-height: 100%; }
+
+.side {
+  width: var(--side-w); flex: none; background: var(--surface);
+  border-right: 1px solid var(--line); display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh;
+}
+.brand {
+  font-weight: 700; font-size: 15px; letter-spacing: -.01em;
+  padding: 18px 18px 16px; border-bottom: 1px solid var(--line-soft);
+}
+.brand span { color: var(--accent); }
+
+.nav { padding: 10px 10px; flex: 1; overflow-y: auto; }
+.nav-group {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em;
+  color: var(--text-3); padding: 14px 10px 6px;
+}
+.nav a {
+  display: block; padding: 7px 10px 7px 13px; border-radius: var(--r-sm);
+  color: var(--text); font-size: 13.5px; margin-bottom: 1px;
+  border-left: 3px solid transparent;
+}
+.nav a:hover { background: var(--surface-2); text-decoration: none; }
+.nav a.active {
+  background: var(--accent-soft); color: var(--accent);
+  border-left-color: var(--accent); font-weight: 600;
+}
+
+.side-foot { border-top: 1px solid var(--line-soft); padding: 12px 14px 14px; }
+.who { font-size: 13px; font-weight: 600; }
+.who-role {
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--text-3); margin-bottom: 10px;
+}
+
+/* System status strip — the control-panel element. Live, compact, always there. */
+.sysbar { border-top: 1px solid var(--line-soft); padding: 11px 14px; background: var(--surface-2); }
+.sysbar-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em;
+  color: var(--text-3); margin-bottom: 8px;
+}
+.sysrow { display: flex; align-items: center; gap: 7px; font-size: 11.5px; margin-bottom: 5px; }
+.sysrow:last-child { margin-bottom: 0; }
+.sysrow .k { color: var(--text-2); width: 46px; flex: none; }
+.sysrow .v { font-variant-numeric: tabular-nums; font-weight: 600; margin-left: auto; }
+.led { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--text-3); }
+.led.on   { background: var(--ok); box-shadow: 0 0 0 2px var(--ok-soft); }
+.led.off  { background: var(--crit); box-shadow: 0 0 0 2px var(--crit-soft); }
+.meter { flex: 1; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--accent); }
+
+.main { flex: 1; padding: 22px 26px 40px; min-width: 0; }
+.head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; margin-bottom: 18px; flex-wrap: wrap;
+  padding-bottom: 14px; border-bottom: 1px solid var(--line);
+}
+.head .muted { font-size: 13px; }
+
+/* ── surfaces ───────────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 16px 18px;
+}
+.card.flush { padding: 0; }
+.card.flush > h2 { padding: 14px 18px 0; }
+.grid { display: grid; gap: 14px; }
+.cols-4 { grid-template-columns: repeat(auto-fit, minmax(182px, 1fr)); }
+.cols-2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+
+.stat-label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--text-3);
+}
+.stat {
+  font-size: 27px; font-weight: 650; line-height: 1.15; margin-top: 4px;
+  font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+}
+
+/* ── tables ─────────────────────────────────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+thead th {
+  text-align: left; padding: 9px 14px; background: var(--surface-2);
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--text-2); white-space: nowrap;
+}
+tbody td { padding: 9px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: var(--surface-2); }
+.card:not(.flush) thead th:first-child,
+.card:not(.flush) tbody td:first-child { padding-left: 0; }
+.card:not(.flush) thead th:last-child,
+.card:not(.flush) tbody td:last-child { padding-right: 0; }
+
+/* ── controls ───────────────────────────────────────────────────────────── */
+button, .btn {
+  background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent);
+  border-radius: var(--r-sm); padding: 7px 14px; font: inherit; font-size: 13px;
+  font-weight: 550; cursor: pointer; display: inline-block; line-height: 1.3;
+}
+button:hover, .btn:hover { filter: brightness(1.08); text-decoration: none; }
+button.ghost {
+  background: var(--surface); border-color: var(--line); color: var(--text); font-weight: 500;
+}
+button.ghost:hover { background: var(--surface-2); filter: none; border-color: var(--text-3); }
+button.danger { background: var(--crit); border-color: var(--crit); }
+/* A destructive action that is NOT the main action on the row: red enough to
+   read as destructive, quiet enough that a row of them is not a wall of red.
+   Declared after .ghost so it wins on equal specificity. */
+button.ghost.danger {
+  background: var(--surface); color: var(--crit); border-color: #e9c3c0; font-weight: 500;
+}
+button.ghost.danger:hover { background: var(--crit-soft); border-color: var(--crit); filter: none; }
+button:disabled { opacity: .45; cursor: not-allowed; filter: none; }
+
+input, select, textarea {
+  background: var(--surface); color: var(--text); border: 1px solid var(--line);
+  border-radius: var(--r-sm); padding: 7px 9px; font: inherit; font-size: 13.5px; width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+}
+input[type=date], input[type=time] { font-variant-numeric: tabular-nums; }
+label { display: block; margin-bottom: 11px; }
+label > span {
+  display: block; font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--text-2); margin-bottom: 5px;
+}
+label > span em { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text-3); }
+.row { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+
+/* ── status chips ───────────────────────────────────────────────────────── */
+.pill {
+  display: inline-block; padding: 2px 8px; border-radius: var(--r-sm);
+  font-size: 11px; font-weight: 650; letter-spacing: .02em; white-space: nowrap;
+  border: 1px solid transparent;
+}
+.pill.present, .pill.active { background: var(--ok-soft); color: var(--ok); border-color: #c4e5d3; }
+.pill.late, .pill.early_leave, .pill.warning { background: var(--warn-soft); color: var(--warn); border-color: #f2ddb8; }
+.pill.absent, .pill.suspended { background: #eceff3; color: var(--text-2); border-color: var(--line); }
+.pill.critical { background: var(--crit-soft); color: var(--crit); border-color: #f5cbc7; }
+.pill.info { background: var(--info-soft); color: var(--info); border-color: #c6dcf1; }
+
+/* ── callouts ───────────────────────────────────────────────────────────── */
+.note, .err {
+  padding: 11px 14px; border-radius: var(--r); font-size: 13px;
+  border: 1px solid; border-left-width: 3px;
+}
+.note { background: var(--warn-soft); border-color: #f2ddb8; border-left-color: var(--warn); color: #6b3f00; }
+.err  { background: var(--crit-soft); border-color: #f5cbc7; border-left-color: var(--crit); color: #8c1d16; }
+/* Field-level validation text, under the input it belongs to. */
+small.bad { display: block; margin-top: 4px; color: var(--crit); font-size: 11.5px; line-height: 1.35; }
+label small.muted { display: block; margin-top: 4px; font-size: 11.5px; line-height: 1.4; font-weight: 400; }
+.note b, .err b { font-weight: 650; }
+
+/* ── zone drawing ───────────────────────────────────────────────────────── */
+.canvas-wrap {
+  position: relative; display: inline-block; max-width: 100%;
+  border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: #0b0e12;
+}
+.canvas-wrap canvas { display: block; max-width: 100%; cursor: crosshair; }
+.zone-list { list-style: none; margin: 0; padding: 0; }
+.zone-list li {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 0; border-bottom: 1px solid var(--line-soft); font-size: 13.5px;
+}
+.zone-list li:last-child { border-bottom: 0; }
+.swatch { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+
+/* ── login ──────────────────────────────────────────────────────────────── */
+.login { display: grid; place-items: center; min-height: 100vh; background: var(--bg); }
+.login .card { width: 352px; padding: 26px 26px 22px; }
+.login .brand { padding: 0 0 18px; border-bottom: 1px solid var(--line-soft); margin-bottom: 18px; }
+
+/* ── module chips (camera form) ─────────────────────────────────────────────
+   A toggle that has to read as on or off at a glance across a grid of five,
+   in a light UI where a tinted background alone is too weak to carry it. So:
+   accent border + accent left rule + tick when on, plain outline when off. */
+.mod-chip {
+  display: flex; align-items: flex-start; gap: 9px; width: 100%;
+  padding: 9px 10px; text-align: left; cursor: pointer;
+  background: var(--surface); color: var(--text-2);
+  border: 1px solid var(--line); border-left: 3px solid var(--line);
+  border-radius: var(--r); font-weight: 500;
+}
+.mod-chip:hover { background: var(--surface-2); border-color: var(--text-3); filter: none; }
+.mod-chip.on {
+  background: var(--accent-soft); color: var(--text);
+  border-color: #b9d2ec; border-left-color: var(--accent);
+}
+.mod-chip .mod-ic { color: var(--text-3); line-height: 0; margin-top: 1px; }
+.mod-chip.on .mod-ic { color: var(--accent); }
+.mod-chip .mod-name { display: block; font-size: 12.5px; font-weight: 600; }
+.mod-chip.on .mod-name { color: var(--accent); }
+.mod-chip .mod-sub {
+  display: block; margin-top: 2px; font-size: 11px; font-weight: 400;
+  color: var(--text-3); line-height: 1.35;
+}
+.mod-chip .mod-tick { margin-left: auto; color: var(--accent); line-height: 0; }
+
+/* ── resolution chips (camera form) ─────────────────────────────────────────
+   The sizes a camera reports it will accept. Read-only: these are facts about
+   the device, not controls, so they must not look clickable — the one the
+   camera is actually set to is the only one that carries any emphasis. */
+.res-chip {
+  display: inline-block; padding: 3px 8px; border-radius: var(--r-sm);
+  font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap;
+  background: var(--surface-2); color: var(--text-2);
+  border: 1px solid var(--line);
+}
+.res-chip.on {
+  background: var(--accent-soft); color: var(--accent);
+  border-color: #b9d2ec; font-weight: 600;
+}

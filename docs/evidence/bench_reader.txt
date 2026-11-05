@@ -1,0 +1,4 @@
+bench_reader — decode throughput per source
+  py)06_object_abandone_corridor.mp4  960x540   decoded  400 in 6.0s =  66.7 fps  | consumed 400  | letterbox 3.56 ms/frame  | software
+  /tmp/so_sub.mp4     640x360   decoded 1272 in 6.0s = 212.0 fps  | consumed 1272  | letterbox 0.86 ms/frame  | software
+  /tmp/so_720.mp4     960x540   decoded  442 in 6.0s =  73.5 fps  | consumed 442  | letterbox 3.24 ms/frame  | software

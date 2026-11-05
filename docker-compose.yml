@@ -1,0 +1,132 @@
+# Smart Office — the whole stack.
+#
+# Three services. Non-default host ports throughout so this can sit alongside
+# other deployments on the same board without a collision.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartoffice-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-smartoffice}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
+      POSTGRES_DB: ${DB_NAME:-smartoffice}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports: ["${DB_PORT:-5433}:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-smartoffice}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartoffice-app
+    restart: unless-stopped
+    depends_on:
+      postgres: {condition: service_healthy}
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-smartoffice}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-smartoffice}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # The recognition model, by filename in ./models. Changing it INVALIDATES
+      # every stored embedding: run `--reembed` before starting, or the live
+      # vectors are compared against a previous model's gallery, which gives
+      # confident WRONG matches rather than no match.
+      REC_MODEL: ${REC_MODEL:-ArcFace_MobileFaceNet.dxnn}
+      NPU_CORES: ${NPU_CORES:-3}
+      POSTPROCESS_WORKERS: ${POSTPROCESS_WORKERS:-3}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+      # Without this the DXRT client never looks at the socket mounted below.
+      # It burns ~500 ms per engine load retrying an abstract-namespace socket
+      # that a container cannot see, then falls back to a degraded no-service
+      # path — quietly, which is the worst part.
+      DXRT_DYNAMIC_IPC_ENDPOINT: /tmp/dxrt_dynamic_ipc.sock
+
+    # ── NPU access ──────────────────────────────────────────────────────────
+    # The container carries no driver. Everything below exists so it can reach
+    # the HOST's dxrtd service, and each line was established by testing rather
+    # than copied hopefully from a wiki.
+    devices:
+      # The only DX device node on this board.
+      - /dev/dxrt0:/dev/dxrt0
+      # The RK3588 video engine: hardware H.264/H.265 decode and the 2D
+      # converter/scaler it writes through. Without these the container can
+      # only decode in software, however many plugins are installed.
+      - /dev/mpp_service:/dev/mpp_service
+      - /dev/rga:/dev/rga
+      - /dev/dri:/dev/dri
+      # MPP allocates every frame buffer through a DMA heap. Without these the
+      # decoder reports only "failed to init mpp ctx" and falls back to
+      # software, which looks like the hardware simply not being there.
+      - /dev/dma_heap/system:/dev/dma_heap/system
+      - /dev/dma_heap/system-dma32:/dev/dma_heap/system-dma32
+      - /dev/dma_heap/system-uncached:/dev/dma_heap/system-uncached
+      - /dev/dma_heap/system-uncached-dma32:/dev/dma_heap/system-uncached-dma32
+      - /dev/dma_heap/cma:/dev/dma_heap/cma
+      - /dev/dma_heap/cma-uncached:/dev/dma_heap/cma-uncached
+    # Those nodes are root:video and root:render. The container has to be in
+    # both groups to open them; this is narrower than running privileged.
+    # Numeric, matching the host: the image has `video` (44) but no `render`
+    # group, and a name that does not exist in the container is an error rather
+    # than a no-op.
+    group_add:
+      - "44"
+      - "110"
+    volumes:
+      # dxrtd listens on BOTH an abstract-namespace socket and this filesystem
+      # twin. The abstract one is scoped to the network namespace, so a
+      # container cannot see it however it is mounted; this is the reachable one.
+      - /tmp/dxrt_dynamic_ipc.sock:/tmp/dxrt_dynamic_ipc.sock
+      # DeviceStatus reads live temperature, clock and per-core utilisation from
+      # this shared-memory file. Read-only: nothing here should write it.
+      - /dev/shm/dxrt_monitor_v2:/dev/shm/dxrt_monitor_v2:ro
+      - ./models:/app/models:ro
+      # Recorded clips a camera can be pointed at, for a deployment
+      # rehearsal before any RTSP camera is wired up.
+      - ./sample:/app/sample:ro
+      - snapshots:/data/snapshots
+    # The concrete socket alone is NOT sufficient — dxrtd's protocol depends on
+    # seeing real host PIDs. Verified A/B by the sibling project: engine creation
+    # fails with only the device plus the socket mount, and succeeds once this is
+    # added. It is a real if narrow trade-off, taken instead of `privileged` or
+    # `network_mode: host` (which would drop this container off the compose
+    # network and break every service-name URL).
+    pid: host
+    #
+    # Deliberately NOT here, unlike the sibling project: the RKMPP device nodes
+    # (/dev/mpp_service, /dev/rga, /dev/dri/*, /dev/dma_heap/*), the `video` and
+    # `render` groups, and `security_opt: apparmor=unconfined` +
+    # `systempaths=unconfined`. Those exist to let a container use Rockchip's
+    # HARDWARE video decoder. Measured on this board, that decoder is 33x SLOWER
+    # than software decode for this workload, because its output is uncached DMA
+    # memory and this application must read every frame on the CPU. Dropping it
+    # removes all of that privilege as well as the cost.
+
+    ports: ["${APP_PORT:-8080}:8080"]
+    # A ceiling so a leak can never take the board down with it. This board has
+    # 7.7 GB; on hit, Docker restarts the app rather than the kernel picking a
+    # victim. If it is ever reached that is a regression to investigate, not a
+    # number to raise.
+    mem_limit: ${APP_MEM_LIMIT:-3g}
+    logging:
+      driver: json-file
+      options: {max-size: "20m", max-file: "5"}
+
+  nginx:
+    image: nginx:alpine
+    container_name: smartoffice-nginx
+    restart: unless-stopped
+    depends_on: [app]
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports: ["${HTTP_PORT:-8090}:80"]
+
+volumes:
+  pgdata:
+  snapshots:

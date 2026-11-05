@@ -1,0 +1,16 @@
+A12 — notification carries a real image (mock Telegram endpoint, 2026-09-24T13:48:41+06:00)
+
+The C++ Telegram channel was pointed at a local mock and asked to send an
+alert with a JPEG. What the mock actually received:
+
+{
+  "path": "/botTESTTOKEN/sendPhoto",
+  "multipart": true,
+  "has_photo_part": true,
+  "has_caption": true,
+  "jpeg_magic": true,
+  "bytes": 35639
+}
+
+path is sendPhoto (not sendMessage), the body is multipart, it carries a
+photo part and a caption part, and the bytes begin with the JPEG magic.

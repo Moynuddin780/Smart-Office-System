@@ -1,0 +1,35 @@
+Smart Office — verification
+
+Hardware
+  [32mok[0m    a DEEPX device is on the bus
+        [2m0001:11:00.0 Processing accelerators: Device 1ff4:0000 (rev 01)[0m
+  [32mok[0m    dxrt-cli reports live NPU cores
+        [2mNPU 0: voltage 750 mV, clock 1000 MHz, temperature 62'C | NPU 1: voltage 750 mV, clock 1000 MHz, temperature 62'C | NPU 2: voltage 750 mV, clock 1000 MHz, temperature 62'C[0m
+  [32mok[0m    the container's route to the NPU exists
+        [2mdevice node, IPC socket and telemetry file all present[0m
+
+Artefacts
+  [32mok[0m    the three models are present
+        [2m3 models present[0m
+  [32mok[0m    setup.sh and run.sh parse
+        [2msetup.sh and run.sh parse[0m
+  [32mok[0m    docker compose config is valid
+        [2mdocker compose config parses[0m
+  [32mok[0m    no secret ships with a default
+        [2mno secret has a default[0m
+
+Code
+  [32mok[0m    the C++ test suite passes
+        [2m[doctest] test cases:  146 |  146 passed | 0 failed | 0 skipped | [doctest] assertions: 2404 | 2404 passed | 0 failed |[0m
+  [32mok[0m    three-core NPU pooling still works
+        [2mspeedup 3 engines vs 1 : 2.48x | cores showing activity  : 3 of 3 | RESULT: PASS — per-core pooling works[0m
+
+The running stack  [2m(http://localhost:8090)[0m
+  [32mok[0m    /healthz reports ok
+        [2mdb=True npu=True engines=9 cameras=2/3[0m
+  [32mok[0m    every protected route refuses an anonymous caller
+        [2mall 8 protected routes returned 401/403[0m
+  [32mok[0m    the dashboard is served
+        [2mHTTP 200[0m
+
+[32mRESULT: PASS[0m — 12 checks

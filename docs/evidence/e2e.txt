@@ -1,0 +1,33 @@
+Smart Office — end-to-end
+  http://localhost:8090
+
+Vendor
+  [32mok[0m    superadmin signed in
+  [32mok[0m    a superadmin is refused inside a tenant
+        [2mthe vendor provisions companies; they do not read a client's faces[0m
+
+Provisioning
+  [32mok[0m    two companies created (#8, #9)
+  [32mok[0m    both company admins signed in
+
+Company A does real work
+  [32mok[0m    camera created (#7)
+  [32mok[0m    employee created (#7)
+  [32mok[0m    desk zone bound to the employee (#5)
+  [32mok[0m    gate line created (#4)
+  [32mok[0m    a desk zone with no employee is refused
+
+Isolation — company B tries to reach company A's data
+  [32mok[0m    company B could not read, delete or escalate into company A
+  [32mok[0m    company B's camera list is its own (empty)
+
+Reporting
+  [32mok[0m    the attendance report lists the employee (absent so far)
+  [32mok[0m    the desk report lists the desk
+  [32mok[0m    the CSV export has a header row
+
+Engine
+  [32mok[0m    the engine started a worker for the new camera (4 running)
+  [32mok[0m    9 NPU engines live (3 models x 3 cores)
+
+[32mRESULT: PASS[0m — 16 checks

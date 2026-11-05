@@ -1,0 +1,24 @@
+2026-09-23 17:39:50.859 [INFO ] engine_pool.cpp:51  [engine] loaded models/yolo26s_pose.dxnn (bound=NPU_0, ort=no, buffers=4)
+2026-09-23 17:40:06.147 [INFO ] engine_pool.cpp:51  [engine] loaded models/yolo26s_pose.dxnn (bound=NPU_0, ort=no, buffers=4)
+2026-09-23 17:40:06.218 [INFO ] engine_pool.cpp:51  [engine] loaded models/yolo26s_pose.dxnn (bound=NPU_1, ort=no, buffers=4)
+2026-09-23 17:40:06.289 [INFO ] engine_pool.cpp:51  [engine] loaded models/yolo26s_pose.dxnn (bound=NPU_2, ort=no, buffers=4)
+bench_pool — model=models/yolo26s_pose.dxnn threads=6 duration=15s per run
+Premise under test: three core-bound engines use three NPU cores;
+a single engine does not.
+
+--- CONTROL: one engine (bound NPU_0) ---
+  cores=1  1087 inferences in 15.1 s  =  71.8 inf/s
+    NPU_0  mean  93.5%   peak 100.0%
+    NPU_1  mean   0.0%   peak   0.0%
+    NPU_2  mean   0.0%   peak   0.0%
+
+--- POOL: three engines (NPU_0 + NPU_1 + NPU_2) ---
+  cores=3  2816 inferences in 15.1 s  =  186.4 inf/s
+    NPU_0  mean  97.6%   peak 100.0%
+    NPU_1  mean  92.8%   peak 100.0%
+    NPU_2  mean  92.8%   peak 100.0%
+
+=== VERDICT ===
+  speedup 3 engines vs 1 : 2.60x
+  cores showing activity  : 3 of 3
+  RESULT: PASS — per-core pooling works

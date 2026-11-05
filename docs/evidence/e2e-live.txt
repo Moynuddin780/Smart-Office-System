@@ -1,0 +1,49 @@
+A14 — the whole product path, running in Docker on this board (2026-09-24T14:38:34+06:00)
+
+A camera was pointed at a recorded corridor clip mounted into the container
+and a restricted zone drawn over the floor. Nothing was stubbed: this is the
+real decoder, the real NPU, the real tracker, the real module and the real
+database.
+
+--- /healthz ---
+{
+    "cameras_online": 1,
+    "cameras_running": 3,
+    "database": true,
+    "engines": 9,
+    "gallery": 0,
+    "npu": true,
+    "npu_core_utilisation": [
+        4.127891584372257,
+        2.7518945463738373,
+        4.128488762110267
+    ],
+    "ok": true
+}
+
+--- the camera worker ---
+  online=False decode=none       read=0      inferred=0      detect_hz=0.00 faces=0 identified=0
+  online=False decode=none       read=0      inferred=0      detect_hz=0.00 faces=0 identified=0
+  online=True decode=software   read=3342   inferred=869    detect_hz=8.45 faces=0 identified=0
+
+--- what it raised ---
+  2 event(s)
+  [critical] perimeter    Person in restricted zone      snapshot=True crop=True
+  [critical] perimeter    Person in restricted zone      snapshot=True crop=True
+
+--- images written to disk, partitioned by tenant and day ---
+/data/snapshots/live-proof-co/2026-09-24/perimeter-crop-083803-014-1b1e.jpg
+/data/snapshots/live-proof-co/2026-09-24/perimeter-full-083803-001-cb2.jpg
+/data/snapshots/live-proof-co/2026-09-24/perimeter-crop-083654-493-71fc.jpg
+/data/snapshots/live-proof-co/2026-09-24/perimeter-full-083654-374-ab0e.jpg
+
+--- the notification outbox ---
+email | pending | attempts=2 | email is not configured (host and a recipient are required)
+telegram | pending | attempts=2 | telegram is not configured
+email | failed | attempts=3 | email is not configured (host and a recipient are required)
+telegram | failed | attempts=3 | telegram is not configured
+
+It tried three times per channel and then failed LOUDLY with an accurate
+reason, because no Telegram or SMTP credentials are configured on this
+machine. A silently dropped alert is indistinguishable from nothing having
+happened, so that is the designed behaviour rather than a gap.

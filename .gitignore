@@ -1,0 +1,42 @@
+build/
+models/*.dxnn
+frontend/node_modules/
+frontend/dist/
+# tests/fixtures/* IS committed: the decoder tests must be reproducible without a device
+# docs/evidence is committed: it is the record that these checks actually ran
+.env
+compile_commands.json
+third_party/dxrt/lib/*.so*
+sample/*.mp4
+
+# ---- personal data: employee photos, face crops, recordings, backups, test clips ----
+/face/
+/face_recognition_testing/
+/recordings/
+/backups/
+/sample/
+/Esheta/
+/Noushin/
+# session export folder (date-prefixed)
+/20261008-*/
+
+# ---- models (large binaries, separate licences) and DEEPX runtime ----
+/models/*
+!/models/README.md
+/new_models/
+*.dxnn
+/third_party/dxrt/*
+!/third_party/dxrt/VENDORED.md
+
+# ---- secrets, caches, editors ----
+.env.*
+!.env.example
+*.pem
+*.key
+*.log
+*.pid
+__pycache__/
+*.pyc
+.DS_Store
+.idea/
+.vscode/
