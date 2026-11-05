@@ -48,7 +48,7 @@ TEST_CASE("the WS-Security digest is the one the camera computes") {
     //   digest = base64(sha1(nonce + created + password))
     const std::string nonce(16, '\0');      // all zero bytes, a fixed input
     const std::string created = "2026-10-13T11:00:00Z";
-    const std::string h = onvif_security_header("admin", "123456", nonce, created);
+    const std::string h = onvif_security_header("admin", "s3cretpw", nonce, created);
 
     CHECK(h.find("<Username>admin</Username>") != std::string::npos);
     CHECK(h.find(created) != std::string::npos);
@@ -57,12 +57,12 @@ TEST_CASE("the WS-Security digest is the one the camera computes") {
     // The password itself must NEVER appear: PasswordDigest exists precisely so
     // the cleartext does not cross the wire, and a header that carries both is
     // worse than one that carries neither.
-    CHECK(h.find("123456") == std::string::npos);
+    CHECK(h.find("s3cretpw") == std::string::npos);
 
     // Changing only the password must change the digest — the check that
     // catches a digest computed over the wrong fields or in the wrong order.
     CHECK(onvif_security_header("admin", "other", nonce, created) != h);
-    CHECK(onvif_security_header("admin", "123456", nonce, "2026-10-13T11:00:01Z") != h);
+    CHECK(onvif_security_header("admin", "s3cretpw", nonce, "2026-10-13T11:00:01Z") != h);
 }
 
 TEST_CASE("a real camera's profiles become a main and a sub stream") {
